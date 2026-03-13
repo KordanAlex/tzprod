@@ -8,13 +8,13 @@ const users: {
     { "id": 1, "name": "Alice Johnson", "age": 28 },
     { "id": 2, "name": "Bob Smith", "age": 34 },
     { "id": 3, "name": "Charlie Brown", "age": 22 },
-    { "id": 4, "name": "Diana Prince", "age": 29 },
+    { "id": 4, "name": "Diana Prince", "age": 10 },
     { "id": 5, "name": "Ethan Hunt", "age": 41 },
     { "id": 6, "name": "Fiona Gallagher", "age": 25 },
-    { "id": 7, "name": "George Costanza", "age": 38 },
+    { "id": 7, "name": "George Costanza", "age": 10 },
     { "id": 8, "name": "Hannah Baker", "age": 19 },
     { "id": 9, "name": "Ian Malcolm", "age": 52 },
-    { "id": 10, "name": "Julia Roberts", "age": 33 }
+    { "id": 10, "name": "Julia Roberts", "age": 10 }
   ]
 
 let lastId = users.length > 0 ? Math.max(...users.map(u => u.id)) : 0;
@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
         if (!user) throw createError({ statusCode: 404, statusMessage: "Пользователь не найден" })
         return user
       }
-      let filterUsers = queries.age ? users.filter(user => user.age === Number(queries.age)) : users
+      const filterUsers = queries.age ? users.filter(user => user.age === Number(queries.age)) : users
       return filterUsers.slice(start, start + limit)
 
     case 'POST':
