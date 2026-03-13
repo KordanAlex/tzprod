@@ -17,14 +17,12 @@ const users: {
     { "id": 10, "name": "Julia Roberts", "age": 33 }
   ]
 
-const lastId = users.length > 0 ? users.length + -1 : 0;
+let lastId = users.length > 0 ? Math.max(...users.map(u => u.id)) : 0;
 
 export default defineEventHandler(async (event) => {
   const queries = getQuery(event)
   const method = event.method
 
-  const queryId = Number(queries.id)
-  const newId = lastId + 1
   const page = queries.page ? Number(queries.page) : 1
   const limit = queries.limit ? Number(queries.limit) : 5
   const start = (page - 1) * limit
@@ -32,32 +30,36 @@ export default defineEventHandler(async (event) => {
 
   switch (method) {
     case 'GET':
-      if (!isNaN(queryId)) {
-        const user = users.find(user => user.id === queryId)
+      if (!isNaN(Number(queries.id))) {
+        const user = users.find(user => user.id === Number(queries.id))
         if (!user) throw createError({ statusCode: 404, statusMessage: "Пользователь не найден" })
         return user
       }
-      return users.slice(start, start + limit)
+      let filterUsers = queries.age ? users.filter(user => user.age === Number(queries.age)) : users
+      return filterUsers.slice(start, start + limit)
 
     case 'POST':
       const body = await readBody(event)
-      if (!body.name || !body.age) {
+      const age = Number(body.age)
+      const name = String(body.name.trim())
+      if (name !== '' || !isNaN(age)) {
         throw createError({
           statusCode: 400,
-          statusMessage: 'Fields id, name, age are required',
+          statusMessage: 'Fields name, age are required',
         })
       }
       const newUser = {
-        id: newId,
+        id: lastId + 1,
         name: body.name,
         age: Number(body.age)
       }
       users.push(newUser)
-      return body
+      lastId += 1
+      return newUser
 
     case 'DELETE':
-      if (!isNaN(queryId)) {
-        const userIndex = users.findIndex(user => user.id === queryId)
+      if (!isNaN(Number(queries.id)d)) {
+        const userIndex = users.findIndex(user => user.id === Number(queries.id))
 
         if (userIndex === -1) {
           throw createError({
