@@ -58,7 +58,7 @@ export default defineEventHandler(async (event) => {
       return newUser
 
     case 'DELETE':
-      if (!isNaN(Number(queries.id)d)) {
+      if (!isNaN(Number(queries.id))) {
         const userIndex = users.findIndex(user => user.id === Number(queries.id))
 
         if (userIndex === -1) {
