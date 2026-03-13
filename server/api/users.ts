@@ -64,7 +64,7 @@ export default defineEventHandler(async (event) => {
       const body = await readBody(event)
       const queryId = Number(queries.id)
 
-      if (!isNaN(queryId)) {
+      if (isNaN(queryId)) {
         throw createError({statusCode: 400, statusMessage: "Укажите id пользователя"})
       }
 
