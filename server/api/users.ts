@@ -30,15 +30,17 @@ export default defineEventHandler(async (event) => {
 
   switch (method) {
     case 'GET':
-      if (!isNaN(Number(queries.id))) {
-        const user = users.find(user => user.id === Number(queries.id))
+      const queryId = Number(queries.id)
+      const queryAge = Number(queries.age)
+      if (!isNaN(queryId)) {
+        const user = users.find(user => user.id === queryId)
         if (!user) throw createError({ statusCode: 404, statusMessage: "Пользователь не найден" })
         return user
       }
-      const filterUsers = queries.age ? users.filter(user => user.age === Number(queries.age)) : users
+      const filterUsers = queries.age ? users.filter(user => user.age === queryAge) : users
       return filterUsers.slice(start, start + limit)
 
-    case 'POST':
+    case 'POST':{
       const body = await readBody(event)
       const age = Number(body.age)
       const name = String(body.name.trim())
@@ -56,10 +58,32 @@ export default defineEventHandler(async (event) => {
       users.push(newUser)
       lastId += 1
       return newUser
+    }
 
-    case 'DELETE':
-      if (!isNaN(Number(queries.id))) {
-        const userIndex = users.findIndex(user => user.id === Number(queries.id))
+    case 'PUT': {
+      const body = await readBody(event)
+      const queryId = Number(queries.id)
+
+      if (!isNaN(queryId)) {
+        throw createError({statusCode: 400, statusMessage: "Укажите id пользователя"})
+      }
+
+      const userIndex = users.findIndex(user => user.id === queryId)
+
+      if (userIndex === -1) {
+        throw createError({statusCode: 404, statusMessage: "Пользователь не найден"})
+      }
+
+      const newUser = structuredClone({...users[userIndex], ...body})
+      users[userIndex] = newUser
+
+      return newUser
+    }
+
+    case 'DELETE': {
+      const queryId = Number(queries.id)
+      if (!isNaN(queryId)) {
+        const userIndex = users.findIndex(user => user.id === queryId)
 
         if (userIndex === -1) {
           throw createError({
@@ -70,6 +94,7 @@ export default defineEventHandler(async (event) => {
         users.splice(userIndex, 1)
       }
       return "OK";
+    }
 
     default:
       throw createError({ statusCode: 405, statusMessage: 'Method not allowed' })
