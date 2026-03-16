@@ -18,131 +18,103 @@ export const useUserStore = defineStore('userStore', () => {
 
     const getUsers = async (page: number, limit?: number) => {
         try {
-            const { data, error } = await useFetch<{ users: User[]; total: number }>('/api/users', {
+            const data = await $fetch<{ users: User[]; total: number }>('/api/users', {
                 query: { page, limit }
-            });
-            if (error) {
-                console.error('Ошибка при получении пользователей:', error);
-                return;
-            }
-            if (data.value) {
-                users.value = data.value.users;
-                totalPage.value = data.value.total;
-            }
+            })
+            users.value = data.users
+            totalPage.value = data.total
         } catch (err) {
-            console.error('Ошибка сети:', err);
+            console.error('Ошибка при получении пользователей:', err)
         }
-    };
+    }
 
     const getUser = async (id: number) => {
         try {
-            const { data, error } = await useFetch<User>('/api/users', {
+            const data = await $fetch<User>('/api/users', {
                 query: { id }
-            });
-            if (error) {
-                console.error('Ошибка при получении пользователя:', error);
-                return;
-            }
-            if (data.value) {
-                Object.assign(user, structuredClone(data.value));
-            }
+            })
+            Object.assign(user, structuredClone(data))
         } catch (err) {
-            console.error('Ошибка сети:', err);
+            console.error('Ошибка при получении пользователя:', err)
         }
-    };
+    }
 
     const createUser = async (newUser: Omit<User, 'id'>) => {
         try {
-            const { data, error } = await useFetch<User>('/api/users', {
+            const data = await $fetch<User>('/api/users', {
                 method: 'POST',
                 body: newUser
-            });
-            if (error) {
-                console.error('Ошибка при создании пользователя:', error);
-                return;
-            }
-            if (data.value) {
-                users.value.push(data.value);
-                totalPage.value += 1;
-            }
+            })
+            users.value.push(data)
+            totalPage.value += 1
         } catch (err) {
-            console.error('Ошибка сети:', err);
+            console.error('Ошибка при создании пользователя:', err)
         }
-    };
-
+    }
 
     const updateUser = async (id: number, updatedData: Omit<User, 'id'>) => {
         try {
-            const { data, error } = await useFetch<User>('/api/users', {
+            const data = await $fetch<User>('/api/users', {
                 method: 'PUT',
                 query: { id },
                 body: updatedData
-            });
-            if (error) {
-                console.error('Ошибка при обновлении пользователя:', error);
-                return;
+            })
+            const index = users.value.findIndex(u => u.id === id)
+            if (index !== -1) {
+                users.value[index] = { id: users.value[index]!.id, ...updatedData }
             }
-            if (data.value) {
-                const index = users.value.findIndex(u => u.id === id);
-                if (index !== -1) {
-                    users.value[index] = { id: users.value[index]!.id, ...updatedData };
-                }
-                if (user.id === id) {
-                    Object.assign(user, structuredClone(data.value));
-                }
+            if (user.id === id) {
+                Object.assign(user, structuredClone(data))
             }
         } catch (err) {
-            console.error('Ошибка сети:', err);
+            console.error('Ошибка при обновлении пользователя:', err)
         }
-    };
+    }
 
     const deleteUser = async (id: number) => {
         try {
-            const { error } = await useFetch('/api/users', {
+            await $fetch('/api/users', {
                 method: 'DELETE',
                 query: { id }
-            });
-            if (error) {
-                console.error('Ошибка при удалении пользователя:', error);
-                return;
-            }
-            const index = users.value.findIndex(u => u.id === id);
+            })
+            const index = users.value.findIndex(u => u.id === id)
             if (index !== -1) {
-                users.value.splice(index, 1);
-                totalPage.value -= 1;
+                users.value.splice(index, 1)
+                totalPage.value -= 1
             }
         } catch (err) {
-            console.error('Ошибка сети:', err);
+            console.error('Ошибка при удалении пользователя:', err)
         }
-    };
+    }
 
     const nextPage = () => {
         if (currentPage.value < Math.ceil(totalPage.value / currentLimit.value)) {
-            currentPage.value += 1;
-            getUsers(currentPage.value, currentLimit.value);
+            currentPage.value += 1
+            getUsers(currentPage.value, currentLimit.value)
         }
-    };
+    }
 
     const prevPage = () => {
         if (currentPage.value > 1) {
-            currentPage.value -= 1;
-            getUsers(currentPage.value, currentLimit.value);
+            currentPage.value -= 1
+            getUsers(currentPage.value, currentLimit.value)
         }
-    };
+    }
 
     const setPage = (page: number) => {
         if (page >= 1 && page <= Math.ceil(totalPage.value / currentLimit.value)) {
-            currentPage.value = page;
-            getUsers(currentPage.value, currentLimit.value);
+            currentPage.value = page
+            getUsers(currentPage.value, currentLimit.value)
         }
-    };
+    }
 
     const refreshUsers = () => {
-        getUsers(currentPage.value, currentLimit.value);
-    };
+        getUsers(currentPage.value, currentLimit.value)
+    }
 
     return {
-        user, users, currentPage, currentLimit, getUsers, getUser, createUser, updateUser, deleteUser, nextPage, prevPage, setPage, refreshUsers, totalPage
+        user, users, currentPage, currentLimit, getUsers, getUser,
+        createUser, updateUser, deleteUser, nextPage, prevPage,
+        setPage, refreshUsers, totalPage
     }
-}
-)
+})
