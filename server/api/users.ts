@@ -27,14 +27,14 @@ export default defineEventHandler(async (event) => {
       const queryAge = Number(query.age)
 
       if (!isNaN(queryId)) {
-        const user = users.find(user => user.id === query.id)
+        const user = users.find(user => user.id === queryId)
         if (!user) {
           throw createError({ statusCode: 404, statusMessage: "Пользователь не найден" })
         }
         return user
       }
 
-      const filteredUsers = query.age ? users.filter(users => users.age === queryAge) : users
+      const filteredUsers = query.age ? users.filter(user => user.age === queryAge) : users
     
       return {
         users: filteredUsers.slice(start, start + limit),
@@ -47,7 +47,7 @@ export default defineEventHandler(async (event) => {
       const bodyName = String(body.name).trim()
       const bodyAge = Number(body.age)
 
-      if (bodyName !== '' || isNaN(bodyAge)) {
+      if (bodyName === '' || isNaN(bodyAge) || bodyAge <= 0) {
         throw createError({ statusCode: 400, statusMessage: "Поля ввода имени и возраста обязательны!" })
       }
 
@@ -75,12 +75,25 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 404, statusMessage: "Пользователь не найден" })
       }
 
-      users.splice(userIndex, 1, body)
-      return users[userIndex]
+      const bodyName = String(body.name).trim()
+      const bodyAge = Number(body.age)
+
+      if (bodyName === '' || isNaN(bodyAge)) {
+        throw createError({ statusCode: 400, statusMessage: "Поля ввода имени и возраста обязательны!" })
+      }
+
+      const updatedUser = {
+        id: queryId,
+        name: bodyName,
+        age: bodyAge,
+      }
+
+      users.splice(userIndex, 1, updatedUser)
+      return updatedUser
     }
     case "DELETE": {
       const queryId = Number(query.id)
-      if (isNaN(queryId)) { throw createError({ statusCode: 404, statusMessage: "Айди пользователя указан не корректно" }) }
+      if (isNaN(queryId)) { throw createError({ statusCode: 400, statusMessage: "Айди пользователя указан не корректно" }) }
 
       const userIndex = users.findIndex(user => user.id === queryId)
 
