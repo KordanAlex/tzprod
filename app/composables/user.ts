@@ -115,7 +115,7 @@ export const useUserStore = defineStore('userStore', () => {
             const data = await $fetch<{ users: (User & { position: number })[]; total: number }>('/api/users', {
                 query: { page: 1, limit: 50, search }
             })
-            return data.users.map(u => ({ id: u.id, label: `${u.name}, ${u.age} yr`, position: u.position }))
+            return data.users.map(u => ({ id: u.id, label: `${u.name}, ${u.age} age`, position: u.position }))
         } catch (err) {
             console.error('Ошибка при поиске:', err)
             return []

@@ -98,15 +98,19 @@ const onKeydown = (e: KeyboardEvent) => {
 
 .dropdown-input {
     width: 100%;
-    padding: 10px 14px;
+    height: 42px;
+    padding: 0 14px;
     background: #141416;
     border: 1px solid #2a2a2e;
     border-radius: 8px;
     color: #e8e6e1;
+    font-family: 'DM Mono', monospace;
     font-size: 14px;
+    line-height: 42px;
     outline: none;
     transition: border-color 0.15s;
     box-sizing: border-box;
+    overflow: visible;
 }
 
 .dropdown-input:focus {
@@ -123,20 +127,22 @@ const onKeydown = (e: KeyboardEvent) => {
     left: 0;
     right: 0;
     margin: 0;
-    padding: 4px;
+    padding: 6px 6px 10px;
     list-style: none;
     background: #141416;
     border: 1px solid #2a2a2e;
     border-radius: 8px;
     max-height: 200px;
-    overflow-y: auto;
+    overflow: visible;
     z-index: 50;
 }
 
 .dropdown-item {
-    padding: 8px 12px;
+    display: block;
+    padding: 12px 12px 14px;
     border-radius: 6px;
     font-size: 14px;
+    line-height: 1.5;
     color: #aaa;
     cursor: pointer;
     transition: all 0.1s;
