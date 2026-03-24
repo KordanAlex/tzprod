@@ -21,6 +21,5 @@ export default defineEventHandler((event) => {
     return product
   }
 
-  // GET /api/products → all products
   return products
 })
