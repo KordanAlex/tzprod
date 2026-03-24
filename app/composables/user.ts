@@ -16,10 +16,12 @@ export const useUserStore = defineStore('userStore', () => {
     const currentLimit = ref(5)
     const totalPage = ref(0)
 
+    const searchQuery = ref('')
+
     const getUsers = async (page: number, limit?: number) => {
         try {
             const data = await $fetch<{ users: User[]; total: number }>('/api/users', {
-                query: { page, limit }
+                query: { page, limit, search: searchQuery.value || undefined }
             })
             users.value = data.users
             totalPage.value = data.total
@@ -108,13 +110,25 @@ export const useUserStore = defineStore('userStore', () => {
         }
     }
 
+    const searchUsers = async (search: string) => {
+        try {
+            const data = await $fetch<{ users: (User & { position: number })[]; total: number }>('/api/users', {
+                query: { page: 1, limit: 50, search }
+            })
+            return data.users.map(u => ({ id: u.id, label: `${u.name}, ${u.age} yr`, position: u.position }))
+        } catch (err) {
+            console.error('Ошибка при поиске:', err)
+            return []
+        }
+    }
+
     const refreshUsers = () => {
         getUsers(currentPage.value, currentLimit.value)
     }
 
     return {
-        user, users, currentPage, currentLimit, getUsers, getUser,
-        createUser, updateUser, deleteUser, nextPage, prevPage,
+        user, users, searchQuery, currentPage, currentLimit, getUsers, getUser,
+        searchUsers, createUser, updateUser, deleteUser, nextPage, prevPage,
         setPage, refreshUsers, totalPage
     }
 })

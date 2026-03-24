@@ -3,11 +3,26 @@ const users: {
   name: string,
   age: number,
 }[] = [
-    {
-      id: 1,
-      name: 'Danila',
-      age: 24
-    }
+    { id: 1, name: 'Danila', age: 24 },
+    { id: 2, name: 'Ivan', age: 30 },
+    { id: 3, name: 'Maria', age: 22 },
+    { id: 4, name: 'Alex', age: 28 },
+    { id: 5, name: 'Olga', age: 35 },
+    { id: 6, name: 'Dmitry', age: 19 },
+    { id: 7, name: 'Anna', age: 27 },
+    { id: 8, name: 'Sergei', age: 41 },
+    { id: 9, name: 'Elena', age: 33 },
+    { id: 10, name: 'Nikita', age: 21 },
+    { id: 11, name: 'Tatiana', age: 29 },
+    { id: 12, name: 'Pavel', age: 26 },
+    { id: 13, name: 'Ksenia', age: 23 },
+    { id: 14, name: 'Andrei', age: 38 },
+    { id: 15, name: 'Viktor', age: 45 },
+    { id: 16, name: 'Natalia', age: 31 },
+    { id: 17, name: 'Roman', age: 20 },
+    { id: 18, name: 'Darya', age: 25 },
+    { id: 19, name: 'Maxim', age: 34 },
+    { id: 20, name: 'Irina', age: 37 },
   ]
 
 let lastId = users.length ? Math.max(...users.map(u => u.id)) : 0;
@@ -34,8 +49,24 @@ export default defineEventHandler(async (event) => {
         return user
       }
 
-      const filteredUsers = query.age ? users.filter(user => user.age === queryAge) : users
-    
+      let filteredUsers = query.age ? users.filter(user => user.age === queryAge) : users
+
+      if (query.search) {
+        const search = String(query.search).toLowerCase()
+        filteredUsers = filteredUsers.filter(user =>
+          user.name.toLowerCase().includes(search)
+        )
+
+        // При поиске возвращаем позицию каждого пользователя в общем списке
+        return {
+          users: filteredUsers.slice(start, start + limit).map(u => ({
+            ...u,
+            position: users.indexOf(u)    // позиция в общем массиве
+          })),
+          total: filteredUsers.length
+        }
+      }
+
       return {
         users: filteredUsers.slice(start, start + limit),
         total: filteredUsers.length
