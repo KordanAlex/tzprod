@@ -1,147 +1,14 @@
-<template>
-  <div class="page">
-    <!-- Header -->
-    <header class="page-header">
-      <div class="header-left">
-        <span class="header-label">USERS</span>
-        <h1 class="header-title">Directory</h1>
-      </div>
-      <div class="header-right">
-        <span class="total-badge">{{ store.totalPage }} total</span>
-        <button class="btn-create" @click="openCreateModal">
-          <span class="btn-icon">+</span> New User
-        </button>
-      </div>
-    </header>
-
-    <!-- Table -->
-    <div class="table-wrapper">
-      <div v-if="loading" class="loading-overlay">
-        <div class="spinner" />
-      </div>
-
-      <table class="user-table">
-        <thead>
-          <tr>
-            <th class="th-id">#</th>
-            <th>Name</th>
-            <th>Age</th>
-            <th class="th-actions">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(user, i) in store.users" :key="user.id" class="table-row" :style="{ '--i': i }">
-            <td class="td-id">{{ user.id }}</td>
-            <td class="td-name">
-              <span class="avatar">{{ user.name[0]?.toUpperCase() }}</span>
-              {{ user.name }}
-            </td>
-            <td class="td-age">
-              <span class="age-chip">{{ user.age }} yr</span>
-            </td>
-            <td class="td-actions">
-              <button class="action-btn edit" @click="openEditModal(user)" title="Edit">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                </svg>
-              </button>
-              <button class="action-btn delete" @click="handleDelete(user.id)" title="Delete">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <polyline points="3 6 5 6 21 6" />
-                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                  <path d="M10 11v6" />
-                  <path d="M14 11v6" />
-                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                </svg>
-              </button>
-            </td>
-          </tr>
-          <tr v-if="!store.users.length && !loading">
-            <td colspan="4" class="empty-row">No users found</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Pagination -->
-    <div class="pagination">
-      <div class="page-info">
-        Page <strong>{{ store.currentPage }}</strong> of <strong>{{ totalPages }}</strong>
-      </div>
-      <div class="page-controls">
-        <button class="page-btn" :disabled="store.currentPage === 1" @click="store.prevPage()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-        </button>
-        <button v-for="p in pageNumbers" :key="p" class="page-btn number"
-          :class="{ active: p === store.currentPage, ellipsis: p === '…' }" :disabled="p === '…'"
-          @click="p !== '…' && store.setPage(+p)">{{ p }}</button>
-        <button class="page-btn" :disabled="store.currentPage === totalPages" @click="store.nextPage()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </button>
-      </div>
-      <div class="limit-select">
-        <label>Show</label>
-        <select :value="store.currentLimit" @change="changeLimit">
-          <option v-for="n in [5, 10, 20]" :key="n" :value="n">{{ n }}</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Filter -->
-    <div class="filter-bar">
-      <DropdownFilter
-        :search-fn="store.searchUsers"
-        placeholder="Filter by name..."
-        @select="onFilterSelect"
-      />
-      <button v-if="store.searchQuery" class="btn-clear-filter" @click="clearFilter">
-        Clear
-      </button>
-    </div>
-
-    <!-- Modal -->
-    <Transition name="modal">
-      <div v-if="modal.open" class="modal-backdrop" @click.self="closeModal">
-        <div class="modal">
-          <div class="modal-header">
-            <h2>{{ modal.mode === 'create' ? 'New User' : 'Edit User' }}</h2>
-            <button class="modal-close" @click="closeModal">✕</button>
-          </div>
-          <div class="modal-body">
-            <div class="field">
-              <label>Name</label>
-              <input v-model="modal.form.name" placeholder="Full name" />
-            </div>
-            <div class="field">
-              <label>Age</label>
-              <input v-model.number="modal.form.age" type="number" placeholder="Age" min="1" />
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button class="btn-cancel" @click="closeModal">Cancel</button>
-            <button class="btn-save" :disabled="!isFormValid" @click="submitModal">
-              {{ modal.mode === 'create' ? 'Create' : 'Save' }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </Transition>
-  </div>
-</template>
-
 <script setup lang="ts">
+definePageMeta({
+  layout: 'admin'
+})
+
 const store = useUserStore()
 
 const loading = ref(false)
 
 const onFilterSelect = async (item: { id: number; label: string; [key: string]: any }) => {
-  // Устанавливаем поиск по имени выбранного пользователя
-  store.searchQuery = item.label.split(',')[0] ?? ''    // берём имя без возраста
+  store.searchQuery = item.label.split(',')[0] ?? ''
   store.currentPage = 1
   loading.value = true
   await store.getUsers(1, store.currentLimit)
@@ -160,7 +27,6 @@ const totalPages = computed(() =>
   Math.max(1, Math.ceil(store.totalPage / store.currentLimit))
 )
 
-// Генерация номеров страниц с "…"
 const pageNumbers = computed(() => {
   const total = totalPages.value
   const current = store.currentPage
@@ -173,7 +39,6 @@ const pageNumbers = computed(() => {
   return pages
 })
 
-// Modal
 const modal = reactive({
   open: false,
   mode: 'create' as 'create' | 'edit',
@@ -225,7 +90,6 @@ const changeLimit = async (e: Event) => {
   loading.value = false
 }
 
-// Initial load
 onMounted(async () => {
   loading.value = true
   await store.getUsers(store.currentPage, store.currentLimit)
@@ -233,9 +97,138 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+<template>
+  <div class="page">
+    <header class="page-header">
+      <div class="header-left">
+        <span class="header-label">USERS</span>
+        <h1 class="header-title">Directory</h1>
+      </div>
+      <div class="header-right">
+        <span class="total-badge">{{ store.totalPage }} total</span>
+        <button class="btn-create" @click="openCreateModal">
+          <span class="btn-icon">+</span> New User
+        </button>
+      </div>
+    </header>
 
+    <div class="table-wrapper">
+      <div v-if="loading" class="loading-overlay">
+        <div class="spinner" />
+      </div>
+
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th class="th-id">#</th>
+            <th>Name</th>
+            <th>Age</th>
+            <th class="th-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(user, i) in store.users" :key="user.id" class="table-row" :style="{ '--i': i }">
+            <td class="td-id">{{ user.id }}</td>
+            <td class="td-name">
+              <span class="avatar">{{ user.name[0]?.toUpperCase() }}</span>
+              {{ user.name }}
+            </td>
+            <td class="td-age">
+              <span class="age-chip">{{ user.age }} yr</span>
+            </td>
+            <td class="td-actions">
+              <button class="action-btn edit" @click="openEditModal(user)" title="Edit">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+              </button>
+              <button class="action-btn delete" @click="handleDelete(user.id)" title="Delete">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                  <path d="M10 11v6" />
+                  <path d="M14 11v6" />
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                </svg>
+              </button>
+            </td>
+          </tr>
+          <tr v-if="!store.users.length && !loading">
+            <td colspan="4" class="empty-row">No users found</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination">
+      <div class="page-info">
+        Page <strong>{{ store.currentPage }}</strong> of <strong>{{ totalPages }}</strong>
+      </div>
+      <div class="page-controls">
+        <button class="page-btn" :disabled="store.currentPage === 1" @click="store.prevPage()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </button>
+        <button v-for="p in pageNumbers" :key="p" class="page-btn number"
+          :class="{ active: p === store.currentPage, ellipsis: p === '…' }" :disabled="p === '…'"
+          @click="p !== '…' && store.setPage(+p)">{{ p }}</button>
+        <button class="page-btn" :disabled="store.currentPage === totalPages" @click="store.nextPage()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+      </div>
+      <div class="limit-select">
+        <label>Show</label>
+        <select :value="store.currentLimit" @change="changeLimit">
+          <option v-for="n in [5, 10, 20]" :key="n" :value="n">{{ n }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <DropdownFilter
+        :search-fn="store.searchUsers"
+        placeholder="Filter by name..."
+        @select="onFilterSelect"
+      />
+      <button v-if="store.searchQuery" class="btn-clear-filter" @click="clearFilter">
+        Clear
+      </button>
+    </div>
+
+    <Transition name="modal">
+      <div v-if="modal.open" class="modal-backdrop" @click.self="closeModal">
+        <div class="modal">
+          <div class="modal-header">
+            <h2>{{ modal.mode === 'create' ? 'New User' : 'Edit User' }}</h2>
+            <button class="modal-close" @click="closeModal">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="field">
+              <label>Name</label>
+              <input v-model="modal.form.name" placeholder="Full name" />
+            </div>
+            <div class="field">
+              <label>Age</label>
+              <input v-model.number="modal.form.age" type="number" placeholder="Age" min="1" />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn-cancel" @click="closeModal">Cancel</button>
+            <button class="btn-save" :disabled="!isFormValid" @click="submitModal">
+              {{ modal.mode === 'create' ? 'Create' : 'Save' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </div>
+</template>
+
+<style scoped>
 .page {
   min-height: 100vh;
   background: #0d0d0f;
@@ -246,7 +239,6 @@ onMounted(async () => {
   margin: 0 auto;
 }
 
-/* Header */
 .page-header {
   display: flex;
   align-items: flex-end;
@@ -301,16 +293,9 @@ onMounted(async () => {
   transition: opacity 0.15s;
 }
 
-.btn-create:hover {
-  opacity: 0.85;
-}
+.btn-create:hover { opacity: 0.85; }
+.btn-icon { font-size: 18px; line-height: 1; }
 
-.btn-icon {
-  font-size: 18px;
-  line-height: 1;
-}
-
-/* Table */
 .table-wrapper {
   position: relative;
   border: 1px solid #222;
@@ -337,16 +322,9 @@ onMounted(async () => {
   animation: spin 0.7s linear infinite;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-.user-table {
-  width: 100%;
-  border-collapse: collapse;
-}
+.user-table { width: 100%; border-collapse: collapse; }
 
 .user-table th {
   background: #141416;
@@ -360,24 +338,8 @@ onMounted(async () => {
   border-bottom: 1px solid #222;
 }
 
-.th-id {
-  width: 64px;
-}
-
-.th-actions {
-  width: 100px;
-  text-align: right;
-}
-
-.table-row.highlight {
-  background: rgba(245, 200, 66, 0.15);
-  animation: fadeHighlight 2s ease forwards;
-}
-
-@keyframes fadeHighlight {
-  0% { background: rgba(245, 200, 66, 0.25); }
-  100% { background: transparent; }
-}
+.th-id { width: 64px; }
+.th-actions { width: 100px; text-align: right; }
 
 .table-row {
   border-bottom: 1px solid #1a1a1c;
@@ -386,35 +348,16 @@ onMounted(async () => {
 }
 
 @keyframes rowIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.table-row:last-child {
-  border-bottom: none;
-}
+.table-row:last-child { border-bottom: none; }
+.table-row:hover { background: #141416; }
 
-.table-row:hover {
-  background: #141416;
-}
+.user-table td { padding: 14px 20px; font-size: 15px; vertical-align: middle; }
 
-.user-table td {
-  padding: 14px 20px;
-  font-size: 15px;
-}
-
-.td-id {
-  font-family: 'DM Mono', monospace;
-  font-size: 12px;
-  color: #444;
-}
+.td-id { font-family: 'DM Mono', monospace; font-size: 12px; color: #444; }
 
 .td-name {
   display: flex;
@@ -439,9 +382,7 @@ onMounted(async () => {
   flex-shrink: 0;
 }
 
-.td-age {
-  color: #888;
-}
+.td-age { color: #888; }
 
 .age-chip {
   font-family: 'DM Mono', monospace;
@@ -455,6 +396,7 @@ onMounted(async () => {
 
 .td-actions {
   text-align: right;
+  white-space: nowrap;
 }
 
 .action-btn {
@@ -469,17 +411,8 @@ onMounted(async () => {
   align-items: center;
 }
 
-.action-btn.edit:hover {
-  border-color: #2e5af5;
-  color: #5b82ff;
-  background: #0e1428;
-}
-
-.action-btn.delete:hover {
-  border-color: #6b1a1a;
-  color: #f55;
-  background: #1a0e0e;
-}
+.action-btn.edit:hover { border-color: #2e5af5; color: #5b82ff; background: #0e1428; }
+.action-btn.delete:hover { border-color: #6b1a1a; color: #f55; background: #1a0e0e; }
 
 .empty-row {
   text-align: center;
@@ -489,7 +422,6 @@ onMounted(async () => {
   font-family: 'DM Mono', monospace;
 }
 
-/* Filter bar */
 .filter-bar {
   display: flex;
   align-items: center;
@@ -509,12 +441,8 @@ onMounted(async () => {
   transition: all 0.15s;
 }
 
-.btn-clear-filter:hover {
-  border-color: #f55;
-  color: #f55;
-}
+.btn-clear-filter:hover { border-color: #f55; color: #f55; }
 
-/* Pagination */
 .pagination {
   display: flex;
   align-items: center;
@@ -524,20 +452,9 @@ onMounted(async () => {
   gap: 12px;
 }
 
-.page-info {
-  font-family: 'DM Mono', monospace;
-  font-size: 12px;
-  color: #555;
-}
-
-.page-info strong {
-  color: #aaa;
-}
-
-.page-controls {
-  display: flex;
-  gap: 4px;
-}
+.page-info { font-family: 'DM Mono', monospace; font-size: 12px; color: #555; }
+.page-info strong { color: #aaa; }
+.page-controls { display: flex; gap: 4px; }
 
 .page-btn {
   min-width: 34px;
@@ -556,27 +473,10 @@ onMounted(async () => {
   transition: all 0.15s;
 }
 
-.page-btn:hover:not(:disabled):not(.ellipsis) {
-  border-color: #f5c842;
-  color: #f5c842;
-}
-
-.page-btn.active {
-  background: #f5c842;
-  border-color: #f5c842;
-  color: #0d0d0f;
-  font-weight: 700;
-}
-
-.page-btn:disabled {
-  opacity: 0.3;
-  cursor: default;
-}
-
-.page-btn.ellipsis {
-  pointer-events: none;
-  color: #444;
-}
+.page-btn:hover:not(:disabled):not(.ellipsis) { border-color: #f5c842; color: #f5c842; }
+.page-btn.active { background: #f5c842; border-color: #f5c842; color: #0d0d0f; font-weight: 700; }
+.page-btn:disabled { opacity: 0.3; cursor: default; }
+.page-btn.ellipsis { pointer-events: none; color: #444; }
 
 .limit-select {
   display: flex;
@@ -599,11 +499,8 @@ onMounted(async () => {
   outline: none;
 }
 
-.limit-select select:focus {
-  border-color: #f5c842;
-}
+.limit-select select:focus { border-color: #f5c842; }
 
-/* Modal */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -632,11 +529,7 @@ onMounted(async () => {
   border-bottom: 1px solid #1e1e22;
 }
 
-.modal-header h2 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-}
+.modal-header h2 { margin: 0; font-size: 18px; font-weight: 700; }
 
 .modal-close {
   background: none;
@@ -647,22 +540,10 @@ onMounted(async () => {
   padding: 4px;
 }
 
-.modal-close:hover {
-  color: #fff;
-}
+.modal-close:hover { color: #fff; }
 
-.modal-body {
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
+.modal-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
 
 .field label {
   font-family: 'DM Mono', monospace;
@@ -684,20 +565,10 @@ onMounted(async () => {
   transition: border-color 0.15s;
 }
 
-.field input:focus {
-  border-color: #f5c842;
-}
+.field input:focus { border-color: #f5c842; }
+.field input::placeholder { color: #333; }
 
-.field input::placeholder {
-  color: #333;
-}
-
-.modal-footer {
-  display: flex;
-  gap: 10px;
-  padding: 16px 24px 24px;
-  justify-content: flex-end;
-}
+.modal-footer { display: flex; gap: 10px; padding: 16px 24px 24px; justify-content: flex-end; }
 
 .btn-cancel {
   background: none;
@@ -712,10 +583,7 @@ onMounted(async () => {
   transition: all 0.15s;
 }
 
-.btn-cancel:hover {
-  border-color: #444;
-  color: #aaa;
-}
+.btn-cancel:hover { border-color: #444; color: #aaa; }
 
 .btn-save {
   background: #f5c842;
@@ -730,40 +598,12 @@ onMounted(async () => {
   transition: opacity 0.15s;
 }
 
-.btn-save:hover:not(:disabled) {
-  opacity: 0.85;
-}
+.btn-save:hover:not(:disabled) { opacity: 0.85; }
+.btn-save:disabled { opacity: 0.3; cursor: default; }
 
-.btn-save:disabled {
-  opacity: 0.3;
-  cursor: default;
-}
-
-/* Modal transition */
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity 0.2s;
-}
-
-.modal-enter-active .modal,
-.modal-leave-active .modal {
-  transition: transform 0.2s;
-}
-
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-}
-
-.modal-enter-from .modal {
-  transform: scale(0.95) translateY(10px);
-}
-
-.modal-leave-to .modal {
-  transform: scale(0.95) translateY(10px);
-}
-
-.Dropdown-filter {
-  margin-top: 20px;
-}
+.modal-enter-active, .modal-leave-active { transition: opacity 0.2s; }
+.modal-enter-active .modal, .modal-leave-active .modal { transition: transform 0.2s; }
+.modal-enter-from, .modal-leave-to { opacity: 0; }
+.modal-enter-from .modal { transform: scale(0.95) translateY(10px); }
+.modal-leave-to .modal { transform: scale(0.95) translateY(10px); }
 </style>

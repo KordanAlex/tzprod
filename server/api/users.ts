@@ -57,11 +57,10 @@ export default defineEventHandler(async (event) => {
           user.name.toLowerCase().includes(search)
         )
 
-        // При поиске возвращаем позицию каждого пользователя в общем списке
         return {
           users: filteredUsers.slice(start, start + limit).map(u => ({
             ...u,
-            position: users.indexOf(u)    // позиция в общем массиве
+            position: users.indexOf(u)
           })),
           total: filteredUsers.length
         }

@@ -1,3 +1,24 @@
+<script setup lang="ts">
+interface Product {
+  id: number
+  name: string
+  price: number
+  image: string
+  description: string
+  category: string
+}
+
+const route = useRoute()
+
+const { data: product } = await useFetch<Product>('/api/products', {
+  query: { id: route.params.id }
+})
+
+if (!product.value) {
+  throw createError({ statusCode: 404, statusMessage: 'Product not found' })
+}
+</script>
+
 <template>
   <div class="product-page">
     <NuxtLink to="/" class="back-link">
@@ -26,31 +47,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
-interface Product {
-  id: number
-  name: string
-  price: number
-  image: string
-  description: string
-  category: string
-}
-
-const route = useRoute()
-
-const { data: product } = await useFetch<Product>('/api/products', {
-  query: { id: route.params.id }
-})
-
-
-if (!product.value) {
-  throw createError({ statusCode: 404, statusMessage: 'Product not found' })
-}
-</script>
-
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap');
-
 .product-page {
   min-height: 100vh;
   background: #0d0d0f;
@@ -72,15 +69,9 @@ if (!product.value) {
   transition: color 0.15s;
 }
 
-.back-link:hover {
-  color: #f5c842;
-}
+.back-link:hover { color: #f5c842; }
 
-.product {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-}
+.product { display: flex; flex-direction: column; gap: 32px; }
 
 .product-hero {
   background: #141416;
@@ -92,17 +83,8 @@ if (!product.value) {
   justify-content: center;
 }
 
-.product-image {
-  max-width: 100%;
-  max-height: 250px;
-  object-fit: contain;
-}
-
-.product-info {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+.product-image { max-width: 100%; max-height: 250px; object-fit: contain; }
+.product-info { display: flex; flex-direction: column; gap: 8px; }
 
 .product-category {
   font-family: 'DM Mono', monospace;
@@ -112,30 +94,10 @@ if (!product.value) {
   text-transform: uppercase;
 }
 
-.product-name {
-  font-size: 32px;
-  font-weight: 800;
-  margin: 0;
-  color: #fff;
-}
-
-.product-price {
-  font-family: 'DM Mono', monospace;
-  font-size: 24px;
-  color: #f5c842;
-  margin: 0;
-}
-
-.product-desc {
-  font-size: 15px;
-  line-height: 1.6;
-  color: #888;
-  margin: 8px 0 0;
-}
-
-.product-actions {
-  margin-top: 24px;
-}
+.product-name { font-size: 32px; font-weight: 800; margin: 0; color: #fff; }
+.product-price { font-family: 'DM Mono', monospace; font-size: 24px; color: #f5c842; margin: 0; }
+.product-desc { font-size: 15px; line-height: 1.6; color: #888; margin: 8px 0 0; }
+.product-actions { margin-top: 24px; }
 
 .btn-buy {
   background: #f5c842;
@@ -150,7 +112,5 @@ if (!product.value) {
   transition: opacity 0.15s;
 }
 
-.btn-buy:hover {
-  opacity: 0.85;
-}
+.btn-buy:hover { opacity: 0.85; }
 </style>

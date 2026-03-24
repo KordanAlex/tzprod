@@ -1,3 +1,18 @@
+<script setup lang="ts">
+interface Product {
+  id: number
+  name: string
+  price: number
+  image: string
+  description: string
+  category: string
+}
+
+const { data: products } = await useFetch<Product[]>('/api/products', {
+  default: () => []
+})
+</script>
+
 <template>
   <div class="products-page">
     <header class="page-header">
@@ -30,31 +45,14 @@
   </div>
 </template>
 
-<script setup lang="ts">
-interface Product {
-  id: number
-  name: string
-  price: number
-  image: string
-  description: string
-  category: string
-}
-
-const { data: products } = await useFetch<Product[]>('/api/products', {
-  default: () => []
-})
-</script>
-
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap');
-
 .products-page {
   min-height: 100vh;
   background: #0d0d0f;
   color: #e8e6e1;
   font-family: 'Syne', sans-serif;
   padding: 48px 40px;
-  max-width: 960px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -99,7 +97,7 @@ const { data: products } = await useFetch<Product[]>('/api/products', {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
 }
 

@@ -1,3 +1,9 @@
+<script setup lang="ts">
+definePageMeta({
+  layout: false
+})
+</script>
+
 <template>
   <div class="not-found">
     <span class="nf-code">404</span>
@@ -10,10 +16,9 @@
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap');
-
 .not-found {
-  min-height: 100vh;
+  position: fixed;
+  inset: 0;
   background: #0d0d0f;
   color: #e8e6e1;
   font-family: 'Syne', sans-serif;
